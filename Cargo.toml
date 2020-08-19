@@ -1,0 +1,19 @@
+[package]
+name = "matrixclient"
+version = "0.1.0"
+authors = ["timokoesters <timo@koesters.xyz>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ruma = { path = "../ruma/ruma", features = ["client-api", "federation-api", "unstable-pre-spec", "unstable-synapse-quirks"] }
+ruma-client = { path = "../ruma/ruma-client" }
+url = "2.1.1"
+log = "0.4.11"
+pretty_env_logger = "0.4.0"
+tokio = { version = "0.2.22", features = ["macros"] }
+hyper = "0.13.7"
+
+[profile.release]
+debug = true
