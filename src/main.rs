@@ -14,7 +14,7 @@ use std::{
 };
 
 const PASSWORD: &str = "asljdfbdnfsd";
-const ROOM_ID: &str = "!fpInizhmUiQ1v9Uo:localhost";
+const ROOM_ID: &str = "!VnpxPgWzIdObOCKfvL:synapse-server-name";
 
 #[derive(Default)]
 struct State {

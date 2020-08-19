@@ -20,6 +20,9 @@ Synapse:
 ```
 # default
 time 5m0.870s
+
+# postgres:
+time 1m46.319s
 ```
 
 Dendrite:
