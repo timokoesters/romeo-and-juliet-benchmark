@@ -7,8 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ruma = { path = "../ruma/ruma", features = ["client-api", "federation-api", "unstable-pre-spec", "unstable-synapse-quirks"] }
-ruma-client = { path = "../ruma/ruma-client" }
+ruma = { git = "https://github.com/timokoesters/ruma", features = ["rand", "client-api", "federation-api", "unstable-pre-spec", "unstable-synapse-quirks"], branch = "timo-fixes" }
+ruma-client = { git = "https://github.com/timokoesters/ruma", branch = "timo-fixes" }
 url = "2.1.1"
 log = "0.4.11"
 pretty_env_logger = "0.4.0"
