@@ -1,14 +1,12 @@
 # Romeo and Juliet benchmark
 
-Usage:
+## Usage:
 
-1. Edit src/main.rs to point to the correct homeserver and room id.
-
-2. Run these commands:
+Run these commands:
 
 ```
 cargo build --release
-time cargo run --release
+time target/release/rjbench http://localhost:8000 $roomid:server.name
 ```
 
 This will go through the play defined in romeo_and_juliet.txt and create users
