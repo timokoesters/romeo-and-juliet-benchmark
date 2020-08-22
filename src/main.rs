@@ -9,7 +9,7 @@ use ruma::{
     },
     RoomId,
 };
-use ruma_client::{Client, HttpClient};
+use ruma_client::{Client, HttpsClient};
 use std::{
     collections::{hash_map::Entry, HashMap},
     env,
@@ -23,7 +23,7 @@ const PASSWORD: &str = "asljdfbdnfsd";
 struct State {
     server: Uri,
     room_id: RoomId,
-    clients: HashMap<String, HttpClient>, // Maps user ids to clients
+    clients: HashMap<String, HttpsClient>, // Maps user ids to clients
     id: String,
     counter: u32,
 }
@@ -44,7 +44,7 @@ impl State {
 
         let server = self.server.clone();
         let mut entry = self.clients.entry(username.clone());
-        let client: &mut HttpClient = match entry {
+        let client: &mut HttpsClient = match entry {
             Entry::Occupied(ref mut e) => e.get_mut(),
             Entry::Vacant(e) => {
                 e.insert(Self::new_client(server, &self.room_id, username, displayname).await)
@@ -76,8 +76,8 @@ impl State {
         room_id: &RoomId,
         username: String,
         displayname: String,
-    ) -> HttpClient {
-        let client = Client::new(server, None);
+    ) -> HttpsClient {
+        let client = Client::https(server, None);
         debug!("Trying to register...");
         client
             .register_user(Some(dbg!(username.clone())), PASSWORD.to_owned())
@@ -146,7 +146,7 @@ async fn main() -> Result<(), Box<String>> {
         .to_string();
 
     // Use one client to create the room
-    let client = Client::new(server.clone(), None);
+    let client = Client::https(server.clone(), None);
 
     let first_username = format!("user_{}",id);
 
