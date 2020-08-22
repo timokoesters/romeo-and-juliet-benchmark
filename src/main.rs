@@ -1,4 +1,6 @@
-use log::{debug, warn};
+use hyper::Uri;
+use log::debug;
+use r0::room::{create_room::RoomPreset, Visibility};
 use ruma::{
     api::{client::r0, exports::serde_json},
     events::{
@@ -10,12 +12,11 @@ use ruma::{
 use ruma_client::{Client, HttpClient};
 use std::{
     collections::{hash_map::Entry, HashMap},
-    convert::TryFrom,
     env,
     fs::File,
     io::{BufRead, BufReader},
+    time::{SystemTime, UNIX_EPOCH},
 };
-use hyper::Uri;
 
 const PASSWORD: &str = "asljdfbdnfsd";
 
@@ -23,27 +24,31 @@ struct State {
     server: Uri,
     room_id: RoomId,
     clients: HashMap<String, HttpClient>, // Maps user ids to clients
+    id: String,
     counter: u32,
 }
 
 impl State {
-    pub fn new(server: Uri, room_id: RoomId) -> Self {
+    pub fn new(server: Uri, room_id: RoomId, id: String) -> Self {
         State {
             server,
             room_id,
             clients: HashMap::new(),
+            id,
             counter: 0,
         }
     }
 
     pub async fn say(&mut self, displayname: String, line: String) {
-        let username = Self::fix_username(displayname.clone());
+        let username = Self::fix_username(displayname.clone()) + "_" + &self.id;
 
         let server = self.server.clone();
         let mut entry = self.clients.entry(username.clone());
         let client: &mut HttpClient = match entry {
             Entry::Occupied(ref mut e) => e.get_mut(),
-            Entry::Vacant(e) => e.insert(Self::new_client(server, &self.room_id, username, displayname).await),
+            Entry::Vacant(e) => {
+                e.insert(Self::new_client(server, &self.room_id, username, displayname).await)
+            }
         };
 
         self.counter += 1;
@@ -66,16 +71,18 @@ impl State {
             .unwrap();
     }
 
-    async fn new_client(server: Uri, room_id: &RoomId, username: String, displayname: String) -> HttpClient {
+    async fn new_client(
+        server: Uri,
+        room_id: &RoomId,
+        username: String,
+        displayname: String,
+    ) -> HttpClient {
         let client = Client::new(server, None);
         debug!("Trying to register...");
-        if client
+        client
             .register_user(Some(dbg!(username.clone())), PASSWORD.to_owned())
             .await
-            .is_err()
-        {
-            warn!("Unable to register. Already registered?");
-        }
+            .unwrap();
 
         debug!("Trying to log in...");
         let user_id = client
@@ -126,19 +133,53 @@ async fn main() -> Result<(), Box<String>> {
 
     let program_path = args.next().unwrap();
 
-    let server = args
+    let server: Uri = args
         .next()
-        .ok_or_else(|| format!("Usage: {} <server url> <roomid>", program_path))?
+        .ok_or_else(|| format!("Usage: time {} <server url>", program_path))?
         .parse()
         .map_err(|_| "Invalid server url".to_owned())?;
 
-    let room_id = RoomId::try_from(
-        args.next()
-            .ok_or_else(|| format!("Usage: {} <server url> <roomid>", program_path))?,
-    )
-    .map_err(|_| "Invalid RoomId".to_owned())?;
+    let id = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("time is valid")
+        .as_millis()
+        .to_string();
 
-    let mut state = State::new(server, room_id);
+    // Use one client to create the room
+    let client = Client::new(server.clone(), None);
+
+    let first_username = format!("user_{}",id);
+
+    client
+        .register_user(Some(first_username.clone()), PASSWORD.to_owned())
+        .await
+        .unwrap();
+
+    client
+        .log_in(first_username, PASSWORD.to_owned(), None, None)
+        .await
+        .unwrap();
+
+    let room_id = client
+        .request(r0::room::create_room::Request {
+            name: Some(format!("Romeo and Juliet {}", id)),
+            preset: Some(RoomPreset::PublicChat),
+            topic: None,
+            visibility: Some(Visibility::Public),
+            room_alias_name: None,
+            room_version: None,
+            creation_content: None,
+            initial_state: Vec::new(),
+            invite: Vec::new(),
+            invite_3pid: Vec::new(),
+            is_direct: None,
+            power_level_content_override: None,
+        })
+        .await
+        .unwrap()
+        .room_id;
+
+    let mut state = State::new(server, room_id, id);
 
     let file = File::open("romeo_and_juliet.txt").unwrap();
     let reader = BufReader::new(file);
