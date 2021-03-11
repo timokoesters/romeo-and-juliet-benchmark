@@ -1,0 +1,30 @@
+- name: Install cargo and build dependencies
+  apt:
+    name:
+      - cargo
+      - libssl-dev
+      - pkg-config
+    state: latest
+    update_cache: yes
+
+- name: Build conduit-bin (this can take a while)
+  debugger: on_failed
+  shell:
+    cmd: cargo install --git {{conduit_url}} --rev {{conduit_hash}} --locked
+    creates: /root/.cargo/bin/conduit
+
+- name: Install service file
+  copy:
+    src: conduit.service
+    dest: /etc/systemd/system
+
+- name: Install config file
+  copy:
+    src: conduit.toml
+    dest: /rjbench/server
+
+- name: Start conduit service
+  systemd:
+    name: conduit
+    state: started
+    daemon_reload: yes

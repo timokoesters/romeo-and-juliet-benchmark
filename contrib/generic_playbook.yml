@@ -1,0 +1,22 @@
+# boilerplate :(
+- name: Run roles
+  hosts: servers
+  debugger: on_failed
+  strategy: free
+  tasks:
+  - include_role:
+      name: synapse_sqlite
+    when: "'synapse-sqlite' in group_names"
+  - include_role:
+      name: synapse_postgres
+    when: "'synapse-postgres' in group_names"
+  - include_role:
+      name: dendrite_sqlite
+    when: "'dendrite-sqlite' in group_names"
+  - include_role:
+      name: dendrite_postgres
+    when: "'dendrite-postgres' in group_names"
+  - include_role:
+      name: conduit
+    when: "'conduit' in group_names"
+# boilerplate over :)

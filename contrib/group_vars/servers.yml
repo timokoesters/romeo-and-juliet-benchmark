@@ -1,0 +1,4 @@
+synapse_image: matrixdotorg/synapse:v1.29.0
+
+conduit_url: https://gitlab.com/famedly/conduit
+conduit_hash: 6538d91567abf64afe6c56f7726541e573138b48

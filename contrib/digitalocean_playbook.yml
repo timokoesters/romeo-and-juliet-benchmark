@@ -1,0 +1,116 @@
+- name: Prepare out/ dir
+  hosts: localhost
+  tasks:
+    - name: Make out/ dir
+      file:
+        path: "{{ playbook_dir }}/out"
+        state: directory
+
+- name: Create droplets
+  hosts: localhost
+  vars:
+    droplet_size: s-2vcpu-2gb
+    droplet_region: ams3
+    droplet_image: ubuntu-20-04-x64
+    # TODO add other roles
+    roles:
+      - "synapse-sqlite"
+      # - "synapse-postgres"
+      # - "dendrite-sqlite"
+      # - "dendrite-postgres"
+      - "conduit"
+  debugger: on_failed
+  tasks:
+    - name: Get digitalocean API keys
+      digital_ocean_sshkey_info: {}
+      register: ssh_keys_raw
+
+    - name: Create DO droplets
+      include_tasks: tasks/create_droplet.yml
+
+      loop: "{{ roles }}"
+
+- name: Mkdirs
+  hosts: servers
+  tasks:
+    - name: Mkdirs
+      include_tasks: "{{ playbook_dir }}/tasks/mkdirs.yml"
+
+## BUILDING RJBENCH
+
+# Takes too long, uncomment (and comment local build + install) if you encounter problems with glibc and the like
+- name: Install rjbench remotely
+  hosts: servers
+  tasks:
+    - name: Install rjbench command
+      include_tasks: tasks/install_rjbench_remote.yml
+
+# - name: Build rjbench locally
+#   hosts: localhost
+#   tasks:
+#     - name: Build rjbench
+#       include_tasks: tasks/build_rjbench_locally.yml
+
+# - name: Install rjbench from local
+#   hosts: servers
+#   tasks:
+#     - name: Install rjbench from local
+#       copy:
+#         src: "{{ playbook_dir }}/../target/release/rjbench"
+#         dest: "/rjbench/app"
+#         mode: "777"
+#     - name: Copy script
+#       copy:
+#         src: "{{ playbook_dir }}/../romeo_and_juliet.txt"
+#         dest: /rjbench/app
+
+# ## SETTING UP SERVER
+# # has to happen after rjbench or else OOM could occur, or the build could be extremely slow
+
+- name: Include setup
+  tags:
+    - setup
+  import_playbook: generic_playbook.yml
+
+# ## RUNNING RJBENCH
+
+- name: Run test
+  hosts: servers
+  tags:
+     - run
+  debugger: on_failed
+  tasks:
+    - name: Run timing...
+      shell:
+        cmd: time /rjbench/app/rjbench http://localhost:8080
+        chdir: /rjbench/app
+        executable: /bin/bash
+      register: time_cmd
+
+    - name: Copy timing output to local file
+      copy:
+        content: "{{ time_cmd.stderr }}"
+        dest: "out/{{ rjbench_role }}.txt"
+      delegate_to: localhost
+
+## CLEANUP
+
+- name: Destroy all droplets
+  hosts: localhost
+  tags:
+     - delete
+  vars:
+    roles:
+      - "synapse-sqlite"
+      - "synapse-postgres"
+      - "dendrite-sqlite"
+      - "dendrite-postgres"
+      - "conduit"
+  tasks:
+    - name: Remove droplets
+      digital_ocean_droplet:
+        name: "rjbench-{{ item }}-throwaway"
+        state: absent
+        unique_name: yes
+
+      loop: "{{ roles }}"

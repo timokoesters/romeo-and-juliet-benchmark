@@ -1,0 +1,52 @@
+- name: Install Docker
+  include_tasks: "{{playbook_dir}}/tasks/install_docker.yml"
+
+- name: Pull synapse docker image
+  docker_image:
+    name: "{{ synapse_image }}"
+    source: pull
+
+- name: Generate synapse default config
+  docker_container:
+    container_default_behavior: compatibility
+    name: "synapse-generate"
+    image: "{{ synapse_image }}"
+    command: "generate"
+    state: started
+    detach: no
+    volumes:
+      - "/rjbench/server:/data"
+    env:
+      SYNAPSE_SERVER_NAME: "localhost:8080"
+      SYNAPSE_REPORT_STATS: "no"
+  register: generate_container
+
+# - name: Debug container output
+#   debug:
+#     msg: "{{ generate_container.container.Output }}"
+
+- name: Copy Override Config
+  copy:
+    src: homeserver.override.yaml
+    dest: /rjbench/server
+
+- name: Start Synapse
+  docker_container:
+    container_default_behavior: compatibility
+    name: "synapse"
+    image: "{{ synapse_image }}"
+    state: started
+    volumes:
+      - "/rjbench/server:/data"
+    ports:
+      - "127.0.0.1:8080:8008"
+    command: "run --config-path=/data/homeserver.yaml --config-path=/data/homeserver.override.yaml"
+
+- name: Wait for synapse to come up
+  uri:
+    url: "http://127.0.0.1:8080/_matrix/client/versions"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 1

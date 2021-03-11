@@ -1,0 +1,31 @@
+- name: Copy to remote
+  copy:
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: /rjbench/app
+  loop:
+    - src
+    - Cargo.toml
+    - Cargo.lock
+    - romeo_and_juliet.txt
+
+- name: Install cargo and build dependencies
+  apt:
+    name:
+      - cargo
+      - libssl-dev
+      - pkg-config
+    state: latest
+    update_cache: yes
+
+- name: Build rjbench
+  debugger: on_failed
+  shell:
+    cmd: cargo build --release --locked
+    chdir: /rjbench/app
+    creates: /rjbench/app/target/release/rjbench
+
+- name: Create symbolic link
+  ansible.builtin.file:
+    src: /rjbench/app/target/release/rjbench
+    dest: /rjbench/app/rjbench
+    state: link

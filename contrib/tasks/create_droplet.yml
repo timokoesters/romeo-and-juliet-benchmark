@@ -1,0 +1,32 @@
+---
+- name: Create droplet for {{ item }}
+  digital_ocean_droplet:
+    name: "rjbench-{{ item }}-throwaway"
+    size: "{{ droplet_size }}"
+    region: "{{ droplet_region }}"
+    image: "{{ droplet_image }}"
+    wait_timeout: 600
+    state: present
+    unique_name: yes
+    ssh_keys: "{{ ssh_keys_raw.data | map(attribute='fingerprint') }}"
+  register: this_droplet
+
+- name: Add new droplet to host group
+  add_host:
+    hostname: "{{ this_droplet.data.ip_address }}"
+    groups:
+      - "{{ item }}"
+      - servers
+    ansible_user: root
+    rjbench_role: "{{ item }}"
+
+- name: Wait for SSH to come up
+  wait_for:
+    host: "{{ this_droplet.data.ip_address }}"
+    port: 22
+    timeout: 320
+    state: started
+
+- name: Print info about this_droplet
+  debug:
+    msg: "ID is {{ this_droplet.data.droplet.id }}. IP is {{ this_droplet.data.ip_address }}."
