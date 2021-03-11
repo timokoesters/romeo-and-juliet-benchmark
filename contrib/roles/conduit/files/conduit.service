@@ -1,0 +1,19 @@
+[Unit]
+Description=Conduit Matrix homeserver
+After=network.target
+
+[Service]
+Type=simple
+
+Environment="ROCKET_ENV=production"
+Environment="ROCKET_DATABASE_PATH=/rjbench/server"
+Environment="CONDUIT_CONFIG=/rjbench/server/conduit.toml"
+
+ExecStart=/root/.cargo/bin/conduit
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=1m
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+- name: Build rjbench
+  debugger: on_failed
+  shell:
+    cmd: cargo build --release --locked
+    chdir: "{{ playbook_dir }}/../"
+    creates: "{{ playbook_dir }}/../target/release/rjbench"

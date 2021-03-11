@@ -1,0 +1,30 @@
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    bind_addresses: ['0.0.0.0']
+
+    resources:
+      - names: [client]
+        compress: false
+
+enable_registration: true
+
+rc_message:
+ per_second: 9001
+ burst_count: 9001
+
+rc_registration:
+ per_second: 9001
+ burst_count: 9001
+
+rc_login:
+ address:
+   per_second: 9001
+   burst_count: 9001
+ account:
+   per_second: 9001
+   burst_count: 9001
+ failed_attempts:
+   per_second: 9001
+   burst_count: 9001

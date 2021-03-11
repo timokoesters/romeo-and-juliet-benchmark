@@ -1,0 +1,9 @@
+[global]
+server_name = "localhost:8080"
+database_path = "/rjbench/server/conduit_db"
+port = 8080
+max_request_size = 20_000_000 # in bytes
+allow_registration = true
+allow_encryption = true
+allow_federation = false
+address = "127.0.0.1"
