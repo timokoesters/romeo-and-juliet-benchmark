@@ -2,7 +2,7 @@
 
 ## Usage:
 
-Run this command:
+Run this command with the correct port:
 
 ```
 cargo run --release -- http://localhost:8000
@@ -11,7 +11,17 @@ cargo run --release -- http://localhost:8000
 This will go through the play defined in romeo_and_juliet.txt and create users
 for each character and sends one /send request for each line they say.
 
-### Reproducible runs
+
+## Results (2021-07):
+
+| Tester         | OS    | CPU              | Storage  | Synapse sqlite  | Dendrite sqlite     | Dendrite postgres | Conduit sqlite      | Conduit heed (LMDB) |
+| -------------- | ----- | ---------------- | -------- | --------------- | ------------------- | --------------    | ------------------- | ------------------- |
+| timo           | linux | Intel i7 2nd gen | SATA SSD | -               | 8m24s               | 3m54s             | 2m13s               | 1m24s               |
+| neilalexander  | macOS | Intel i7         | NVMe SSD | -               | 0m57s               | -                 | -                   | -                   |
+| aaron          | macOS | Intel i7 7nd gen | NVMe SSD | -               | 0m51s               | -                 | 0m28s               | -                   |
+
+
+### Reproducible runs (contributed by ShadowJonathan)
 
 While [contrib](contrib/README.md) contains some rudimentary documentation, to be able to use it, you must first:
  - Have `ansible-playbook` installed
@@ -34,25 +44,6 @@ It's advised to leave it alone when it does this, although, if a stage takes mor
 or if you're curious what's happening, take one of the IP addresses noted during the "Create droplets" stage, do `ssh root@IP_ADDRESS`,
 and look around with `htop` and `journalctl -f -n 100`.
 
-## Results (2020-08-19):
-
-Synapse:
-```
-sqlite: TODO
-postgres: TODO
-```
-
-Dendrite:
-```
-sqlite: TODO
-postgres: TODO
-```
-
-Conduit:
-```
-heed (LMDB): 84 seconds
-sqlite: TODO
-```
 
 ## Contact me:
 
