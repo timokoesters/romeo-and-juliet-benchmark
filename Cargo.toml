@@ -7,10 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ruma = { git = "https://github.com/timokoesters/ruma", features = ["rand", "client-api", "federation-api", "unstable-pre-spec", "unstable-synapse-quirks"], branch = "timo-fixes" }
-ruma-client = { git = "https://github.com/timokoesters/ruma", branch = "timo-fixes" }
-url = "2.1.1"
-log = "0.4.11"
+ruma = { git = "https://github.com/timokoesters/ruma", features = ["rand", "client-api", "unstable-pre-spec"], branch = "uiaafix" }
+ruma-client = { git = "https://github.com/timokoesters/ruma", features = ["hyper-native-tls", "client-api"], branch = "uiaafix" }
+url = "2.2.2"
+log = "0.4.14"
 pretty_env_logger = "0.4.0"
-tokio = { version = "0.2.22", features = ["macros"] }
-hyper = "0.13.7"
+tokio = { version = "1.8.2", features = ["rt-multi-thread", "macros"] }
+hyper = "0.14.11"
+futures = "0.3.15"

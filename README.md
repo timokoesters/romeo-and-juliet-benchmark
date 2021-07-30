@@ -2,11 +2,10 @@
 
 ## Usage:
 
-Run these commands:
+Run this command:
 
 ```
-cargo build --release
-time target/release/rjbench http://localhost:8000 $roomid:server.name
+cargo run --release -- http://localhost:8000
 ```
 
 This will go through the play defined in romeo_and_juliet.txt and create users
@@ -39,27 +38,20 @@ and look around with `htop` and `journalctl -f -n 100`.
 
 Synapse:
 ```
-# default
-time 5m0.870s
-
-# postgres:
-time 1m46.319s
+sqlite: TODO
+postgres: TODO
 ```
 
 Dendrite:
 ```
-# default
-time 6m8.802s
-
-# postgres:
-time 2m45.387s
+sqlite: TODO
+postgres: TODO
 ```
-
 
 Conduit:
 ```
-# default
-time 0m4.184s
+heed (LMDB): 84 seconds
+sqlite: TODO
 ```
 
 ## Contact me:
